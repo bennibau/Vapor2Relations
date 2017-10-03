@@ -1,4 +1,5 @@
 import Vapor
+import FluentProvider
 
 extension Droplet {
     func setupRoutes() throws {
@@ -23,11 +24,28 @@ extension Droplet {
         get("createCountry") { req in
             let germany = Country(name: "germany")
             let berlin = Capital(name: "Berlin")
+
             try germany.save()
             try berlin.save()
             
             germany.capital_id = berlin.id
             berlin.country_id = germany.id
+            
+            //creating the states
+            let bavaria = State(name: "Bavaria")
+            try bavaria.save()
+            let pivotBavaria = try Pivot<Country, State>(germany, bavaria)
+            try pivotBavaria.save()
+            
+            let thuringia = State(name: "Thuringia")
+            try thuringia.save()
+            let pivotThuringia = try Pivot<Country, State>(germany, thuringia)
+            try pivotThuringia.save()
+            
+            let saxony = State(name: "Saxony")
+            try saxony.save()
+            let pivotSaxony = try Pivot<Country, State>(germany, saxony)
+            try pivotSaxony.save()
 
             try germany.save()
             try berlin.save()
@@ -40,8 +58,8 @@ extension Droplet {
             let country = try Country.all().first!
             //gets the capital of that country
             let capital = try Capital.find(country.capital_id)!
-            
-            return "\(country.name) has the capital \(capital.name)"
+            let states = try country.states().makeJSON()
+            return "\(country.name) has the capital \(capital.name) with states: \(states)"
         }
         
         try resource("posts", PostController.self)

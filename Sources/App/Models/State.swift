@@ -1,5 +1,5 @@
 //
-//  Country.swift
+//  State.swift
 //  App
 //
 //  Created by Benjamin Baumann on 28.09.17.
@@ -9,51 +9,38 @@ import Vapor
 import FluentProvider
 import HTTP
 
-final class Country: Model {
+final class State: Model {
     let storage = Storage()
     
-    /// The name of the country
+    /// The name of the State
     var name: String
     
-    /// one to one relation to capital
-    var capital_id : Identifier?
-    
-    //the method to retrieve all states assigned to the country from the database
-    func states() throws -> [State] {
-        let states: Siblings<Country, State, Pivot<Country, State>> = siblings()
-        return try states.all()
-    }
-    
-    /// Creates a new Country
+    /// Creates a new State
     init(name: String) {
         self.name = name
-        
     }
     
-    /// Initializes the Country from the
+    /// Initializes the State from the
     /// database row
     init(row: Row) throws {
         name = try row.get("name")
-        capital_id = try row.get("capital_id")
     }
-    // Serializes the Country to the database
+    // Serializes the State to the database
     func makeRow() throws -> Row {
         var row = Row()
         try row.set("name", name)
-        try row.set("capital_id", capital_id)
         return row
     }
 }
 
 // MARK: Fluent Preparation
-extension Country: Preparation {
+extension State: Preparation {
     /// Prepares a table/collection in the database
     /// for storing Countries
     static func prepare(_ database: Database) throws {
         try database.create(self) { builder in
             builder.id()
             builder.string("name")
-            builder.foreignId(for: Capital.self, optional: true, unique: false, foreignIdKey: "capital_id", foreignKeyName: "capital_id")
         }
     }
     
@@ -61,14 +48,12 @@ extension Country: Preparation {
     static func revert(_ database: Database) throws {
         try database.delete(self)
     }
-    
-    
 }
 
 // MARK: JSON
 
 // How the model converts from / to JSON.
-extension Country: JSONConvertible {
+extension State: JSONConvertible {
     convenience init(json: JSON) throws {
         try self.init(
             name: json.get("name")
@@ -79,7 +64,6 @@ extension Country: JSONConvertible {
         var json = JSON()
         try json.set("id", id)
         try json.set("name", name)
-        try json.set("capital_id", capital_id)
         return json
     }
 }
@@ -87,4 +71,4 @@ extension Country: JSONConvertible {
 // MARK: HTTP
 // This allows Post models to be returned
 // directly in route closures
-extension Country: ResponseRepresentable { }
+extension State: ResponseRepresentable { }
